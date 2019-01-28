@@ -1,9 +1,9 @@
-import completionSuggestionsCreator from './CompletionSuggestions';
-import CompletionSuggestionsPortal from './CompletionSuggestionsPortal';
-import decorateComponentWithProps from 'decorate-component-with-props';
-import { Map } from 'immutable';
-import suggestionsFilter from './utils/defaultSuggestionsFilter';
-import defaultPositionSuggestions from './utils/positionSuggestions';
+import completionSuggestionsCreator from './CompletionSuggestions'
+import CompletionSuggestionsPortal from './CompletionSuggestionsPortal'
+import decorateComponentWithProps from 'decorate-component-with-props'
+import { Map } from 'immutable'
+import suggestionsFilter from './utils/defaultSuggestionsFilter'
+import defaultPositionSuggestions from './utils/positionSuggestions'
 
 const createCompletionPlugin = (
   completionSuggestionsStrategy,
@@ -12,6 +12,7 @@ const createCompletionPlugin = (
   suggestionsThemeKey = 'completionSuggestions',
   additionalDecorators = [],
 ) => (config = {}) => {
+
   const callbacks = {
     keyBindingFn: undefined,
     handleKeyCommand: undefined,
@@ -21,51 +22,44 @@ const createCompletionPlugin = (
     onEscape: undefined,
     handleReturn: undefined,
     onChange: undefined,
-  };
+  }
 
   const ariaProps = {
     ariaHasPopup: 'false',
     ariaExpanded: 'false',
     ariaOwneeID: undefined,
     ariaActiveDescendantID: undefined,
-  };
+  }
 
-  let searches = Map();
-  let escapedSearch = undefined;
-  let clientRectFunctions = Map();
+  let searches = Map()
+  let escapedSearch = undefined
+  let clientRectFunctions = Map()
 
   const store = {
     getEditorState: undefined,
     setEditorState: undefined,
-    getPortalClientRect: (offsetKey) => clientRectFunctions.get(offsetKey)(),
+    getPortalClientRect: offsetKey => clientRectFunctions.get(offsetKey)(),
     getAllSearches: () => searches,
-    isEscaped: (offsetKey) => escapedSearch === offsetKey,
-    escapeSearch: (offsetKey) => {
-      escapedSearch = offsetKey;
-    },
-
-    resetEscapedSearch: () => {
-      escapedSearch = undefined;
-    },
-
-    register: (offsetKey) => {
-      searches = searches.set(offsetKey, offsetKey);
-    },
+    
+    isEscaped: offsetKey => escapedSearch === offsetKey,
+    escapeSearch: offsetKey => { escapedSearch = offsetKey },
+    resetEscapedSearch: () => { escapedSearch = undefined },
 
     updatePortalClientRect: (offsetKey, func) => {
-      clientRectFunctions = clientRectFunctions.set(offsetKey, func);
+      clientRectFunctions = clientRectFunctions.set(offsetKey, func)
     },
 
-    unregister: (offsetKey) => {
-      searches = searches.delete(offsetKey);
-      clientRectFunctions = clientRectFunctions.delete(offsetKey);
+    register: offsetKey => {
+      searches = searches.set(offsetKey, offsetKey)
     },
-  };
 
-  const {
-    theme = {},
-    positionSuggestions = defaultPositionSuggestions,
-  } = config;
+    unregister: offsetKey => {
+      searches = searches.delete(offsetKey)
+      clientRectFunctions = clientRectFunctions.delete(offsetKey)
+    },
+  }
+
+  const { theme = {}, positionSuggestions = defaultPositionSuggestions, autocompleteChar = '' } = config
   const completionSearchProps = {
     ariaProps,
     callbacks,
@@ -73,8 +67,13 @@ const createCompletionPlugin = (
     store,
     entityMutability: config.entityMutability ? config.entityMutability : 'SEGMENTED',
     positionSuggestions,
-  };
-  const CompletionSuggestions = completionSuggestionsCreator(addModifier, SuggestionEntry, suggestionsThemeKey);
+
+    autocompleteChar
+  }
+  const CompletionSuggestions = completionSuggestionsCreator(addModifier, SuggestionEntry, suggestionsThemeKey)
+
+  const toCallback = name => keyboardEvent => callbacks[name] && callbacks[name](keyboardEvent)
+
   return {
     CompletionSuggestions: decorateComponentWithProps(CompletionSuggestions, completionSearchProps),
     decorators: [
@@ -96,22 +95,20 @@ const createCompletionPlugin = (
     ),
 
     initialize: ({ getEditorState, setEditorState }) => {
-      store.getEditorState = getEditorState;
-      store.setEditorState = setEditorState;
+      store.getEditorState = getEditorState
+      store.setEditorState = setEditorState
     },
 
-    onDownArrow: (keyboardEvent) => callbacks.onDownArrow && callbacks.onDownArrow(keyboardEvent),
-    onTab: (keyboardEvent) => callbacks.onTab && callbacks.onTab(keyboardEvent),
-    onUpArrow: (keyboardEvent) => callbacks.onUpArrow && callbacks.onUpArrow(keyboardEvent),
-    onEscape: (keyboardEvent) => callbacks.onEscape && callbacks.onEscape(keyboardEvent),
-    handleReturn: (keyboardEvent) => callbacks.handleReturn && callbacks.handleReturn(keyboardEvent),
-    onChange: (editorState) => {
-      if (callbacks.onChange) return callbacks.onChange(editorState);
-      return editorState;
+    ...['onDownArrow', 'onTab', 'onUpArrow', 'onEscape', 'handleReturn']
+      .reduce((acc, name) => { acc[name] = toCallback(name); return acc }, {}),
+  
+    onChange: editorState => {
+      if (callbacks.onChange) return callbacks.onChange(editorState)
+      return editorState
     },
-  };
-};
+  }
+}
 
-export default createCompletionPlugin;
+export default createCompletionPlugin
 
-export const defaultSuggestionsFilter = suggestionsFilter;
+export const defaultSuggestionsFilter = suggestionsFilter
