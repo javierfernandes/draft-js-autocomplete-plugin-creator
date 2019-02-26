@@ -94,11 +94,10 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
       // a leave can be empty when it is removed due e.g. using backspace
       const leaves = offsetDetails
         .filter(({ blockKey }) => blockKey === anchorKey)
-        .map(({ blockKey, decoratorKey, leafKey }) => (
-          editorState
-            .getBlockTree(blockKey)
-            .getIn([decoratorKey, 'leaves', leafKey])
-        ))
+        .map(({ blockKey, decoratorKey, leafKey }) => {
+          const tree = editorState.getBlockTree(blockKey)
+          return tree && tree.getIn([decoratorKey, 'leaves', leafKey])
+        })
 
       // if all leaves are undefined the popover should be removed
       if (leaves.every(leave => !leave)) { return removeList() }
