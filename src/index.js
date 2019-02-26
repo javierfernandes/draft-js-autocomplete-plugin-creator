@@ -49,9 +49,8 @@ const createCompletionPlugin = (
       clientRectFunctions = clientRectFunctions.set(offsetKey, func)
     },
 
-    register: offsetKey => {
-      searches = searches.set(offsetKey, offsetKey)
-    },
+    register: offsetKey => { searches = searches.set(offsetKey, offsetKey) },
+    isSearchActive: offsetKey => searches.has(offsetKey),
 
     unregister: offsetKey => {
       searches = searches.delete(offsetKey)

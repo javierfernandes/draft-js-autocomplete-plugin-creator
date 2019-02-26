@@ -37,7 +37,7 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
       const { focusedOptionIndex } = this.state
       const { popover } = this.refs
 
-      if (popover) {
+      if (popover && store.isSearchActive(this.activeOffsetKey)) {
         // In case the list shrinks there should be still an option focused.
         // Note: this might run multiple times and deduct 1 until the condition is
         // not fullfilled anymore.

@@ -11,11 +11,11 @@ export default class CompletionSuggestionsPortal extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.updatePortalClientRect(nextProps);
+    this.updatePortalClientRect(nextProps)
   }
 
   componentWillUnmount() {
-    this.props.store.unregister(this.props.offsetKey);
+    this.props.store.unregister(this.props.offsetKey)
   }
 
   updatePortalClientRect(props) {
