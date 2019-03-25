@@ -11,6 +11,7 @@ const createCompletionPlugin = (
   SuggestionEntry,
   suggestionsThemeKey = 'completionSuggestions',
   additionalDecorators = [],
+  decoratorComponent
 ) => (config = {}) => {
 
   const callbacks = {
@@ -87,7 +88,7 @@ const createCompletionPlugin = (
     decorators: [
       {
         strategy: completionSuggestionsStrategy,
-        component: decorateComponentWithProps(CompletionSuggestionsPortal, { store }),
+        component: decorateComponentWithProps(CompletionSuggestionsPortal, { autocompleteStore: store, decoratorComponent }),
       },
       ...additionalDecorators,
     ],

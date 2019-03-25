@@ -3,8 +3,8 @@ import React, { Component } from 'react';
 export default class CompletionSuggestionsPortal extends Component {
 
   componentWillMount() {
-    const { store, offsetKey, setEditorState, getEditorState } = this.props
-    store.register(offsetKey)
+    const { autocompleteStore, offsetKey, setEditorState, getEditorState } = this.props
+    autocompleteStore.register(offsetKey)
     this.updatePortalClientRect(this.props)
 
     // trigger a re-render so the MentionSuggestions becomes active
@@ -16,22 +16,26 @@ export default class CompletionSuggestionsPortal extends Component {
   }
 
   componentWillUnmount() {
-    const { store, offsetKey } = this.props
-    store.unregister(offsetKey)
+    const { autocompleteStore, offsetKey } = this.props
+    autocompleteStore.unregister(offsetKey)
   }
 
   updatePortalClientRect(props) {
-    this.props.store.updatePortalClientRect(
+    this.props.autocompleteStore.updatePortalClientRect(
       props.offsetKey,
       () => this.refs.searchPortal.getBoundingClientRect(),
     )
   }
 
   render() {
-    return (
-      <span className={this.key} ref="searchPortal">
+    const { decoratorComponent: DecoratorComponent } = this.props
+
+    const content = (
+      <span ref="searchPortal">
         {this.props.children}
       </span>
     )
+    return DecoratorComponent ?
+      (<DecoratorComponent {...this.props}>{content}</DecoratorComponent>) : content
   }
 }
