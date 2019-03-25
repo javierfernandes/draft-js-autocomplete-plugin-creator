@@ -152,7 +152,7 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
       
       if (this.lastSearchValue !== searchValue) {
         this.lastSearchValue = searchValue
-        onSearchChange({ value: searchValue })
+        onSearchChange({ value: searchValue, editorState, selection })
       }
     }
 
@@ -180,8 +180,12 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
       const { suggestions } = this.props
       const { focusedOptionIndex } = this.state
       keyboardEvent.preventDefault()
+      keyboardEvent.stopPropagation()
+      
       this.onCompletionSelect(suggestions.get(focusedOptionIndex))
-      return true
+      
+      // return true
+      return 'handled'
     }
 
     onTab = this.handleReturn

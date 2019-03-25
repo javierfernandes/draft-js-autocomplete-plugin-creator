@@ -3,11 +3,12 @@ import React, { Component } from 'react';
 export default class CompletionSuggestionsPortal extends Component {
 
   componentWillMount() {
-    this.props.store.register(this.props.offsetKey);
-    this.updatePortalClientRect(this.props);
+    const { store, offsetKey, setEditorState, getEditorState } = this.props
+    store.register(offsetKey)
+    this.updatePortalClientRect(this.props)
 
     // trigger a re-render so the MentionSuggestions becomes active
-    this.props.setEditorState(this.props.getEditorState());
+    setEditorState(getEditorState())
   }
 
   componentWillReceiveProps(nextProps) {
@@ -15,23 +16,22 @@ export default class CompletionSuggestionsPortal extends Component {
   }
 
   componentWillUnmount() {
-    this.props.store.unregister(this.props.offsetKey)
+    const { store, offsetKey } = this.props
+    store.unregister(offsetKey)
   }
 
   updatePortalClientRect(props) {
     this.props.store.updatePortalClientRect(
       props.offsetKey,
-      () => (
-        this.refs.searchPortal.getBoundingClientRect()
-      ),
-    );
+      () => this.refs.searchPortal.getBoundingClientRect(),
+    )
   }
 
   render() {
     return (
       <span className={this.key} ref="searchPortal">
-        { this.props.children }
+        {this.props.children}
       </span>
-    );
+    )
   }
 }
