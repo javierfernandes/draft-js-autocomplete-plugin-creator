@@ -92,16 +92,14 @@ const createCompletionPlugin = (
       },
       ...additionalDecorators,
     ],
-    getAccessibilityProps: () => (
-      {
-        role: 'combobox',
-        ariaAutoComplete: 'list',
-        ariaHasPopup: ariaProps.ariaHasPopup,
-        ariaExpanded: ariaProps.ariaExpanded,
-        ariaActiveDescendantID: ariaProps.ariaActiveDescendantID,
-        ariaOwneeID: ariaProps.ariaOwneeID,
-      }
-    ),
+    getAccessibilityProps: () => ({
+      role: 'combobox',
+      ariaAutoComplete: 'list',
+      ariaHasPopup: ariaProps.ariaHasPopup,
+      ariaExpanded: ariaProps.ariaExpanded,
+      ariaActiveDescendantID: ariaProps.ariaActiveDescendantID,
+      ariaOwneeID: ariaProps.ariaOwneeID,
+    }),
 
     initialize: ({ getEditorState, setEditorState }) => {
       store.getEditorState = getEditorState

@@ -5,8 +5,18 @@ import decodeOffsetKey from '../utils/decodeOffsetKey'
 import { genKey, convertToRaw } from 'draft-js'
 import getSearchText from '../utils/getSearchText'
 
+const sizeOf = e => Array.isArray(e) ? e.length : e.size
+const elementAt = (e, i) => Array.isArray(e) ? e[i] : e.get(i)
+
+const ARROW_THRESHOLD = 250
+
 const componentCreator = (addModifier, Entry, suggestionsThemeKey) => 
   class CompletionSuggestions extends Component {
+
+    lastArrowTimestamps = {
+      up: new Date(),
+      down: new Date(),
+    }
 
     static propTypes = {
       entityMutability: PropTypes.oneOf([
@@ -27,7 +37,7 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
     }
 
     componentWillReceiveProps(nextProps) {
-      if (nextProps.suggestions.size === 0 && this.state.isActive) {
+      if (sizeOf(nextProps.suggestions) === 0 && this.state.isActive) {
         this.closeDropdown()
       }
     }
@@ -41,7 +51,7 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
         // In case the list shrinks there should be still an option focused.
         // Note: this might run multiple times and deduct 1 until the condition is
         // not fullfilled anymore.
-        const size = suggestions.size
+        const size = sizeOf(suggestions)
         if (size > 0 && focusedOptionIndex >= size) {
           this.setState({ focusedOptionIndex: size - 1 })
         }
@@ -156,25 +166,36 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
       }
     }
 
-    onDownArrow = keyboardEvent => {
-      const { suggestions } = this.props
-      const { focusedOptionIndex } = this.state
-
-      keyboardEvent.preventDefault()
-      const newIndex = focusedOptionIndex + 1
-      this.onCompletionFocus(newIndex >= suggestions.size ? 0 : newIndex)
-    }
-
-    onUpArrow = keyboardEvent => {
-      const { suggestions } = this.props
-      const { focusedOptionIndex } = this.state
-
-      keyboardEvent.preventDefault()
-      if (suggestions.size > 0) {
-        const newIndex = focusedOptionIndex - 1
-        this.onCompletionFocus(Math.max(newIndex, 0))
+    withTraverseLogic = (direction, fn) => keyboardEvent => {
+      // hitting up/down twice "fast" means you want to traverse the editor instead of
+      // moving between options
+      const previousArrowHit = this.lastArrowTimestamps[direction]
+      this.lastArrowTimestamps[direction] = new Date()
+      if (this.lastArrowTimestamps[direction] - previousArrowHit <= ARROW_THRESHOLD) {
+        return
       }
+      keyboardEvent.preventDefault()
+      return fn(keyboardEvent)
     }
+
+    onUpArrow = this.withTraverseLogic('up', keyboardEvent => {
+      const { suggestions } = this.props
+      const { focusedOptionIndex } = this.state
+
+      const suggestionsSize = sizeOf(suggestions)
+      if (suggestionsSize > 0) {
+        const newIndex = focusedOptionIndex - 1
+        this.onCompletionFocus(newIndex < 0 ? suggestionsSize - 1 : newIndex)
+      }
+    })
+
+    onDownArrow = this.withTraverseLogic('down', keyboardEvent => {
+      const { suggestions } = this.props
+      const { focusedOptionIndex } = this.state
+
+      const newIndex = focusedOptionIndex + 1
+      this.onCompletionFocus(newIndex >= sizeOf(suggestions) ? 0 : newIndex)
+    })
 
     handleReturn = keyboardEvent => {
       const { suggestions } = this.props
@@ -182,7 +203,7 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
       keyboardEvent.preventDefault()
       keyboardEvent.stopPropagation()
       
-      this.onCompletionSelect(suggestions.get(focusedOptionIndex))
+      this.onCompletionSelect(elementAt(suggestions, focusedOptionIndex))
       
       // return true
       return 'handled'
@@ -218,6 +239,7 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
 
       const descendant = `completion-option-${this.key}-${index}`
       ariaProps.ariaActiveDescendantID = descendant
+
       this.state.focusedOptionIndex = index
 
       // to force a re-render of the outer component to change the aria props
@@ -228,6 +250,8 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
     openDropdown = () => {
       const { callbacks, ariaProps, onOpen } = this.props
       const { focusedOptionIndex } = this.state
+
+
       // This is a really nasty way of attaching & releasing the key related functions.
       // It assumes that the keyFunctions object will not loose its reference and
       // by this we can replace inner parameters spread over different modules.
@@ -253,6 +277,7 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
       const { callbacks, ariaProps, onClose } = this.props
 
       // make sure none of these callbacks are triggered
+     
       callbacks.onDownArrow = undefined
       callbacks.onUpArrow = undefined
       callbacks.onTab = undefined
@@ -263,6 +288,7 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
       ariaProps.ariaExpanded = 'false'
       ariaProps.ariaActiveDescendantID = undefined
       ariaProps.ariaOwneeID = undefined
+      
       this.setState({ isActive: false })
 
       if (onClose) { onClose() }
@@ -276,9 +302,9 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
 
       return (
         <div
-          className={ theme[suggestionsThemeKey] }
+          className={theme[suggestionsThemeKey]}
           role="listbox"
-          id={ `completions-list-${this.key}` }
+          id={`completions-list-${this.key}`}
           ref="popover"
         >
           {
@@ -293,7 +319,7 @@ const componentCreator = (addModifier, Entry, suggestionsThemeKey) =>
                 id={`completion-option-${this.key}-${index}`}
                 theme={theme}
               />
-            )).toJS()
+            )) // .toJS()
           }
         </div>
       )

@@ -28,11 +28,11 @@ export default class CompletionSuggestionsPortal extends Component {
   }
 
   render() {
-    const { decoratorComponent: DecoratorComponent } = this.props
+    const { decoratorComponent: DecoratorComponent, children } = this.props
 
     const content = (
       <span ref="searchPortal">
-        {this.props.children}
+        {children}
       </span>
     )
     return DecoratorComponent ?
