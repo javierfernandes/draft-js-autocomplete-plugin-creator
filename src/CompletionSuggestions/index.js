@@ -5,7 +5,7 @@ import decodeOffsetKey from '../utils/decodeOffsetKey'
 import { genKey, convertToRaw } from 'draft-js'
 import getSearchText from '../utils/getSearchText'
 
-const sizeOf = e => Array.isArray(e) ? e.length : e.size
+const sizeOf = e => e ? (Array.isArray(e) ? e.length : e.size) : 0
 const elementAt = (e, i) => Array.isArray(e) ? e[i] : e.get(i)
 
 const ARROW_THRESHOLD = 250
